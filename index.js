@@ -70,7 +70,8 @@ function handleMessage(message) {
 
       case 'purge': // 
 
-        async function purge(amount) {
+        const invalidParameter = 'Invalid message count parameter! Maximum 100 selected.';
+        async function purge(amount, customMessage) {
 
           message.delete();
 
@@ -78,10 +79,10 @@ function handleMessage(message) {
 
           message.channel.bulkDelete(fetched);
 
-          message.channel.send(returnFormattedMessage(`${fetched.size} message(s) purged.`));
+          message.channel.send(returnFormattedMessage(`${customMessage} ${fetched.size} message(s) purged.`));
         }
 
-        purge(args[0]);
+        purge.apply(this, (args[0] > 100 ? [100, invalidParameter] : [args[0], '']));
 
         break;
 
