@@ -1,4 +1,5 @@
-const Discord = require('discord.js')
+const Discord = require('discord.js');
+const fs = require('fs');
 const client = new Discord.Client()
 require('dotenv').config()
 
@@ -24,6 +25,25 @@ function findGuildMember(nametag, guild) { // Search for existing user
   }
 
   return 0;
+}
+
+function returnFormattedMessage(msg) {
+  const flairLocation = Math.floor(Math.random() * 2);
+
+  if(flairLocation === 0) {
+    const flairs = fs.readFileSync('Configuration/prefixes.txt').toString().split('\n');
+  
+    const flairID = Math.floor(Math.random() * flairs.length);
+
+    return flairs[flairID].trim() + ' ' + msg;
+  }
+  else {
+    const flairs = fs.readFileSync('Configuration/suffixes.txt').toString().split('\n');
+
+    const flairID = Math.floor(Math.random() * flairs.length);
+
+    return msg + ' ' + flairs[flairID].trim();
+  }
 }
 
 client.on('message', message => {
@@ -64,7 +84,7 @@ client.on('message', message => {
 
         if(firstMention != undefined) {
 
-          memberID = firsttMenion.id;
+          memberID = firstMention.id;
         
         }
         else {
@@ -79,19 +99,12 @@ client.on('message', message => {
 
           lastSeenDate = new Date(epoch.getSeconds() + lastMessageTimestamp(memberID, guild));
 
-          message.channel.send(`${guild.members.get(memberID).displayName} last seen at ${lastSeenDate}.`);
+          message.channel.send(returnFormattedMessage(`${guild.members.get(memberID).displayName} last seen at ${lastSeenDate}.`));
         }
         else {
           message.channel.send('Member not found.')
         }
         break;
-
-      case 'type':
-
-        message.channel.send(typeof stripSnowflake(args[0]));
-        break;
-
-    }
   }
 })
 client.login(process.env.BOT_TOKEN);
