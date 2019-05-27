@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const fs = require('fs');
-const client = new Discord.Client()
-require('dotenv').config()
+const client = new Discord.Client();
+require('dotenv').config();
 
 const epoch = new Date(1420070400000); // Defining epoch for time tracking
 
@@ -46,7 +46,7 @@ function returnFormattedMessage(msg) {
   }
 }
 
-client.on('message', message => {
+function handleMessage(message) {
   const guild = message.guild;
   let msg = message.content.toLowerCase();
 
@@ -59,23 +59,30 @@ client.on('message', message => {
     switch(cmd){
       case 'ping':
 
-        message.reply('Pong!');
+        dateSent = new Date(message.createdTimestamp);
+        dateReceived = new Date();
+
+        timeDifference = dateReceived.getTime() - dateSent.getTime();
+
+        message.channel.send(`Pongu! Latency of ${timeDifference}ms.`);
         break;
 
 
       case 'purge': // 
 
-        async function purge() {
+        async function purge(amount) {
 
           message.delete();
 
-          const fetched = await message.channel.fetchMessages({limit: args[0]});
+          const fetched = await message.channel.fetchMessages({limit: amount}).catch((err) => {console.error(err)});
 
           message.channel.bulkDelete(fetched);
 
+          message.channel.send(returnFormattedMessage(`${fetched.size} message(s) purged.`));
         }
 
-        purge();
+        purge(args[0]);
+
         break;
 
       case 'lastseen':
@@ -105,6 +112,10 @@ client.on('message', message => {
           message.channel.send('Member not found.')
         }
         break;
+
+      }
   }
-})
+}
+
+client.on('message', handleMessage);
 client.login(process.env.BOT_TOKEN);
