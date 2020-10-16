@@ -1,12 +1,34 @@
 const { Collection } = require('discord.js');
 const { parse } = require('toml');
 const { readFileSync, readdirSync } = require('fs');
+const { Sequelize } = require('sequelize');
+
+const sequelize = new Sequelize('database', 'user', 'pass', {
+    host: 'localhost',
+    dialect: 'sqlite',
+    storage: 'datanase.sqlite',
+});
+
+const Warnings = sequelize.define('warnings', {
+    userid: {
+        type: Sequelize.STRING,
+        unique: true,
+    },
+    warnings: {
+        type: Sequelize.STRING,
+    }
+});
 
 class BotConfig {
     constructor() {
         this.syncConfig();
         this.syncCommands();
         this.syncPermissions();
+        this.initWarningsTable();
+    }
+
+    initWarningsTable() {
+        this.warnings = Warnings;
     }
 
     syncConfig() {
@@ -38,6 +60,10 @@ class BotConfig {
 
     getPermissions() {
         return this.permissions;
+    }
+
+    getWarningsTable() {
+        return this.warnings;
     }
 };
 
