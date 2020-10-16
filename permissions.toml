@@ -1,0 +1,5 @@
+[admin]
+commands = [ '*' ]
+
+[default]
+commands = [ 'ping' ]
