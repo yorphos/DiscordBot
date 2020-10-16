@@ -11,7 +11,7 @@ function findGuildMember(nametag, guild) { // Search for existing user
     return undefined;
 }
 
-function getUserFromMention(mention) {
+function getUserFromMention(client, mention) {
     if (!mention) return;
 
     mention = mention.toString();
