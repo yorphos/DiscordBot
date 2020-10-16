@@ -1,5 +1,5 @@
 const { Client } = require('discord.js');
-const { selfdestructReply } = require('./util/discord-tools.js')
+const { selfdestructReply, getUserFromMention } = require('./util/discord-tools.js')
 const { BotConfig } = require('./util/bot-config.js');
 
 require('dotenv').config();
@@ -31,6 +31,7 @@ const hasPermission = (member, cmd) => {
 
 client.on('ready', () => { // Initialization Operations
     client.user.setActivity(`Use prefix \'${client.prefix}\'`, { type: "INSTANCE" });
+    client.config.getWarningsTable().sync();
     console.log(`Logged in as ${client.user.tag}!`)
 })
 
@@ -64,6 +65,21 @@ client.on('message', async message => {
 
                 client.commands.get('purge').execute(message, parseInt(args[0]));
                 break;
+            }
+        case 'mute':
+            {
+                if (!(args.length === 2 && args[1].startsWith('<@') && args[1].endsWith('>') && parseInt(args[1]))) {
+                    selfdestructReply(message, 'Invalid arguments for command \'mute\'.');
+                }
+
+                var mentionedUser = getUserFromMention(client, args[0]);
+                if (!mentionedUser) {
+
+                }
+
+
+                var length = args[1];
+                client.commands.get('mute').execute(message, mentionedUser, length);
             }
     }
 });
