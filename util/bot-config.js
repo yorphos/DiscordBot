@@ -1,70 +1,57 @@
 const { Collection } = require('discord.js');
 const { parse } = require('toml');
 const { readFileSync, readdirSync } = require('fs');
-const { Sequelize } = require('sequelize');
+const { Pool } = require('pg');
 
-const sequelize = new Sequelize('database', 'user', 'pass', {
-    host: 'localhost',
-    dialect: 'sqlite',
-    storage: 'datanase.sqlite',
-});
+require('dotenv').config();
 
-const Warnings = sequelize.define('warnings', {
-    userid: {
-        type: Sequelize.STRING,
-        unique: true,
-    },
-    warnings: {
-        type: Sequelize.STRING,
-    }
+const DBPool = new Pool({
+  user: process.env.DB_USERNAME,
+  host: process.env.DB_HOST,
+  database: process.env.DB_ID,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
 });
+DBPool.connect();
 
 class BotConfig {
-    constructor() {
-        this.syncConfig();
-        this.syncCommands();
-        this.syncPermissions();
-        this.initWarningsTable();
+  constructor() {
+    this.syncConfig();
+    this.syncCommands();
+    this.syncPermissions();
+  }
+
+  syncConfig() {
+    this.config = parse(readFileSync('./config.toml').toString());
+  }
+
+  syncCommands() {
+    const files = readdirSync('./commands').filter((file) =>
+      file.endsWith('.js')
+    );
+
+    this.commands = new Collection();
+    for (var file of files) {
+      const command = require(`../commands/${file}`);
+      this.commands.set(command.name, command);
     }
+  }
 
-    initWarningsTable() {
-        this.warnings = Warnings;
-    }
+  syncPermissions() {
+    this.permissions = parse(readFileSync('./permissions.toml').toString());
+  }
 
-    syncConfig() {
-        this.config = parse(readFileSync('./config.toml').toString());
-    }
+  getPrefix() {
+    return this.config['prefix'];
+  }
 
-    syncCommands() {
-        const files = readdirSync('./commands').filter(file => file.endsWith('.js'));
+  getCommands() {
+    return this.commands;
+  }
 
-        this.commands = new Collection();
-        for (var file of files) {
-            const command = require(`../commands/${file}`);
+  getPermissions() {
+    return this.permissions;
+  }
+}
 
-            this.commands.set(command.name, command);
-        }
-    }
-
-    syncPermissions() {
-        this.permissions = parse(readFileSync('./permissions.toml').toString());
-    }
-
-    getPrefix() {
-        return this.config['prefix']
-    }
-
-    getCommands() {
-        return this.commands;
-    }
-
-    getPermissions() {
-        return this.permissions;
-    }
-
-    getWarningsTable() {
-        return this.warnings;
-    }
-};
-
-module.exports = { BotConfig };
+module.exports = { BotConfig, DBPool };
