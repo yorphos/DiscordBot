@@ -12,7 +12,7 @@ function findGuildMember(nametag, guild) { // Search for existing user
 }
 
 function getUserFromMention(client, mention) {
-    if (!mention) return;
+    if (!mention) return null;
 
     mention = mention.toString();
     if (mention.startsWith('<@') && mention.endsWith('>')) {
@@ -24,6 +24,8 @@ function getUserFromMention(client, mention) {
 
         return client.users.cache.get(mention);
     }
+
+    return null;
 }
 
 async function selfdestructReply(message, text, timeout = 5000) {
