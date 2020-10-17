@@ -1,8 +1,5 @@
 const { Client } = require('discord.js');
-const {
-  selfdestructReply,
-  getUserFromMention,
-} = require('./util/discord-tools.js');
+const { selfdestructReply, getUserFromMention, getRoleFromID } = require('./util/discord-tools.js');
 const { BotConfig } = require('./util/bot-config.js');
 
 require('dotenv').config();
@@ -25,8 +22,7 @@ const hasPermission = (member, cmd) => {
   for (role of roles) {
     let name = role.name.toLowerCase().replace('@', '');
     let perms = client.permissions[name];
-    if (perms && (perms.commands.includes(cmd) || perms.commands.includes('*')))
-      return true;
+    if (perms && (perms.commands.includes(cmd) || perms.commands.includes('*'))) return true;
   }
 
   return false;
@@ -70,31 +66,16 @@ client.on('message', async (message) => {
       break;
     }
     case 'mute': {
-      if (
-        !(
-          args.length === 3 &&
-          args[0].startsWith('<@') &&
-          args[0].endsWith('>')
-        )
-      ) {
+      if (!(args.length === 3 && args[0].startsWith('<@') && args[0].endsWith('>'))) {
         selfdestructReply(message, "Invalid arguments for command 'mute'.");
         break;
       }
 
-      var mentionedMember = message.guild.member(
-        getUserFromMention(client, args[0])
-      );
+      var mentionedMember = message.guild.member(getUserFromMention(client, args[0]));
       if (!mentionedMember) {
         selfdestructReply(message, "No user found to 'mute'.");
         break;
-      }
-
-      if (
-        !(
-          parseInt(args[1].slice(0, -1)) &&
-          ['s', 'm', 'h', 'd', 'w'].includes(args[1].slice(-1))
-        )
-      ) {
+      } else if (!(parseInt(args[1].slice(0, -1)) && ['s', 'm', 'h', 'd', 'w'].includes(args[1].slice(-1)))) {
         selfdestructReply(
           message,
           'Invalid time specified. (<number><suffix> where suffix one of: s(econds), m(inutes), h(ours), d(ays), w(eeks))'
@@ -104,9 +85,20 @@ client.on('message', async (message) => {
 
       var length = args[1];
       var reason = args[2];
-      client.commands
-        .get('mute')
-        .execute(message, mentionedMember, length, reason);
+      client.commands.get('mute').execute(message, mentionedMember, length, reason);
+    }
+    case 'rolepoll': {
+      if (args.length != 1) {
+        selfdestructReply(message, "Invalid arguments for command 'rolepoll'.");
+      }
+      
+      const role = getRoleFromID(message.guild, args[0])
+      if (!role){
+        selfdestructReply(message, "No role found.");
+      };
+
+      client.commands.get('rolepoll').execute(client, message, role);
+      break;
     }
   }
 });

@@ -20,7 +20,9 @@ function getUserFromMention(client, mention) {
   if (mention.startsWith('<@') && mention.endsWith('>')) {
     mention = mention.slice(2, -1);
 
-    if (mention.startsWith('!')) {
+    if (mention.startsWith('&')) {
+        return null;
+    } else if (mention.startsWith('!')) {
       mention = mention.slice(1);
     }
 
@@ -28,6 +30,19 @@ function getUserFromMention(client, mention) {
   }
 
   return null;
+}
+
+function getRoleFromID(guild, id) {
+    if (!id) return null;
+
+    id = id.toString();
+    if (id.startsWith('<@&') && id.endsWith('>')) {
+        id = id.slice(3, -1);
+
+        return guild.roles.cache.get(id);
+    }
+
+    return null;
 }
 
 async function selfdestructReply(message, text, timeout = 5000) {
@@ -40,5 +55,6 @@ module.exports = {
   lastMessageTimestamp,
   findGuildMember,
   getUserFromMention,
+  getRoleFromID,
   selfdestructReply,
 };
