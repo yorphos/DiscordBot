@@ -1,24 +1,33 @@
 const { Collection } = require('discord.js');
 const { parse } = require('toml');
 const { readFileSync, readdirSync } = require('fs');
-const { Pool } = require('pg');
+const { Sequelize } = require('sequelize');
+const { initModels } = require('./models.js');
+const [dbid, dbuser, dbpass, dbhost, dbport] = [
+  process.env.DB_ID,
+  process.env.DB_USER,
+  process.env.DB_PASS,
+  process.env.DB_HOST,
+  process.env.DB_PORT,
+];
 
 require('dotenv').config();
 
-const DBPool = new Pool({
-  user: process.env.DB_USERNAME,
-  host: process.env.DB_HOST,
-  database: process.env.DB_ID,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+const sequelize = new Sequelize(dbid, dbuser, dbpass, {
+  dbhost,
+  dbport,
+  dialect: 'postgres',
+  logging: false,
 });
-DBPool.connect();
 
 class BotConfig {
+  static dbmodels = sequelize.models;
+
   constructor() {
     this.syncConfig();
     this.syncCommands();
     this.syncPermissions();
+    this.initDB();
   }
 
   syncConfig() {
@@ -41,6 +50,11 @@ class BotConfig {
     this.permissions = parse(readFileSync('./permissions.toml').toString());
   }
 
+  initDB() {
+    initModels(sequelize);
+    this.dbmodels = sequelize.models;
+  }
+
   getPrefix() {
     return this.config['prefix'];
   }
@@ -54,4 +68,4 @@ class BotConfig {
   }
 }
 
-module.exports = { BotConfig, DBPool };
+module.exports = { BotConfig };
